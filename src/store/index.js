@@ -19,25 +19,35 @@ export default new Vuex.Store({
   },
   actions: {
     allProducts({ commit }, data) {
-      axios
-        .get(
-          `https://pim.wforwoman.com/pim/pimresponse.php/?service=category&store=1&url_key=top-wear-kurtas&page=${data.page}&count=${data.count}&sort_by=&sort_dir=desc&filter=`
-        )
-        .then((response) => {          
-          response.data.result.filters.forEach((element) => {
-            element.id = element.filter_lable.split(" ").join("").toLowerCase();
-            element.id = element.id.replace(/[^\w\s]/gi, "");            
+      return new Promise((resolve) => {
+        axios
+          .get(
+            `https://pim.wforwoman.com/pim/pimresponse.php/?service=category&store=1&url_key=top-wear-kurtas&page=${data.page}&count=${data.count}&sort_by=&sort_dir=desc&filter=`
+          )
+          .then((response) => {
+            response.data.result.filters.forEach((element) => {
+              element.id = element.filter_lable
+                .split(" ")
+                .join("_")
+                .toLowerCase();
+              element.id = element.id.replace(/[^\w\s]/gi, "_");
+            });
+            response.data.result.products.forEach((element) => {
+              element.size = element.size
+                .replace(/\(|\)|\[|\]/g, "")
+                .split(",");
+              element.allsize = [...element.size];
+            });
+            var products = response.data.result.products;
+            var filters = response.data.result.filters;
+            commit("productsDetails", products);
+            commit("filters", filters);
+            resolve(response);
+          })
+          .catch((error) => {
+            resolve(error);
           });
-          response.data.result.products.forEach((element) => {
-            element.size = element.size.replace(/\(|\)|\[|\]/g,'').split(",");
-            element.allsize = [...element.size]           
-          });
-          var products = response.data.result.products;
-          var filters = response.data.result.filters;
-          commit("productsDetails", products);
-          commit("filters", filters);
-          console.log(products)
-        });
+      });
     },
   },
   modules: {},

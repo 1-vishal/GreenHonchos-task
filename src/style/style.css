@@ -144,3 +144,9 @@ a:hover {
 .checkbox{
     margin-right: 4px;
 }
+.products {
+    justify-content: center;
+    display: flex;
+    height: 10em;
+    align-items: center;
+}

@@ -37,8 +37,14 @@
                   ><input
                     type="checkbox"
                     class="checkbox"
-                    v-model="isFilter"
-                    @change="filterProduct(option.value)"
+                    @change="
+                      filterProduct(
+                        $event,
+                        option.value,
+                        option.value_key,
+                        filter.id
+                      )
+                    "
                   /><span>{{ option.value }} ({{ option.total }})</span></a
                 >
               </li>
@@ -72,11 +78,11 @@
             </div>
           </div>
         </div>
-        <div class="col-md-12 products"></div>
+        <div class="col-md-12 products" v-if="filterProductDetails.length === 0">Product is not available</div>
         <div
           class="col-md-3 col-sm-6 col-xs-6 col-6"
           id="productSection"
-          v-for="product in productsDetails"
+          v-for="product in filterProductDetails"
           :key="product.id"
         >
           <div class="slide-box">
@@ -118,7 +124,7 @@ export default {
         page: 1,
         count: 20,
       },
-      isFilter: false,
+      filterProductDetails: [],
     };
   },
   computed: {
@@ -141,21 +147,44 @@ export default {
           document.documentElement.offsetHeight;
 
         if (bottomOfWindow) {
-            this.moreData.page = this.moreData.page + 1;
-            this.moreData.count = this.moreData.count + 20;
-            this.apiCall(this.moreData);
+          this.moreData.page = this.moreData.page + 1;
+          this.moreData.count = this.moreData.count + 30;
+          this.apiCall(this.moreData);
         }
       };
     },
     apiCall(moreData) {
-      this.$store.dispatch("allProducts", moreData);
+      this.$store.dispatch("allProducts", moreData).then((res) => {
+        this.filterProductDetails = res.data.result.products;
+      });
     },
-    filterProduct(filtervalue) {
-      this.isFilter = !this.isFilter;
-      if (this.isFilter) {
-        this.productsDetails = this.productsDetails.filter(
-          (product) => product.category === filtervalue
-        );
+    filterProduct(checkbox, filtervalue, filtervalueKey, heading) {
+      switch (heading) {
+        case "colour":
+          heading = "color";
+          break;
+        case "discount":
+          filtervalue = filtervalue.replace("%", "");
+          break;
+        case "price":
+          var range = filtervalueKey.split(",");
+          break;
+      }
+
+      if (checkbox.target.checked) {
+        if (heading === "price") {
+          this.filterProductDetails = this.productsDetails.filter(
+            (product) =>
+              parseInt(product[heading]) > parseInt(range[0]) &&
+              parseInt(product[heading]) <= parseInt(range[1])
+          );
+        } else {
+          this.filterProductDetails = this.productsDetails.filter(
+            (product) => product[heading] === filtervalue
+          );
+        }
+      } else {
+        this.filterProductDetails = this.productsDetails;
       }
     },
   },
