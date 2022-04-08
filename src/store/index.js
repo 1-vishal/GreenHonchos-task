@@ -14,7 +14,9 @@ export default new Vuex.Store({
       state.productsDetails = data;
     },
     filters(state, data) {
-      state.filters = data;
+      if(state.filters.length === 0) {
+        state.filters = data;
+      }
     },
   },
   actions: {
@@ -22,7 +24,7 @@ export default new Vuex.Store({
       return new Promise((resolve) => {
         axios
           .get(
-            `https://pim.wforwoman.com/pim/pimresponse.php/?service=category&store=1&url_key=top-wear-kurtas&page=${data.page}&count=${data.count}&sort_by=&sort_dir=desc&filter=`
+            `https://pim.wforwoman.com/pim/pimresponse.php/?service=category&store=1&url_key=top-wear-kurtas&page=${data.page}&count=${data.count}&sort_by=${data.sort_by}&sort_dir=${data.sort_dir}&filter=${data.filter}`
           )
           .then((response) => {
             response.data.result.filters.forEach((element) => {

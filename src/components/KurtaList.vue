@@ -40,8 +40,7 @@
                     @change="
                       filterProduct(
                         $event,
-                        option.value,
-                        option.value_key,
+                        option,
                         filter.id
                       )
                     "
@@ -78,11 +77,11 @@
             </div>
           </div>
         </div>
-        <div class="col-md-12 products" v-if="filterProductDetails.length === 0">Product is not available</div>
+        <div class="col-md-12 products" v-if="productsDetails.length === 0">Product is not available</div>
         <div
           class="col-md-3 col-sm-6 col-xs-6 col-6"
           id="productSection"
-          v-for="product in filterProductDetails"
+          v-for="product in productsDetails"
           :key="product.id"
         >
           <div class="slide-box">
@@ -123,8 +122,10 @@ export default {
       moreData: {
         page: 1,
         count: 20,
+        sort_by: "",
+        sort_dir: "desc",
+        filter: ""
       },
-      filterProductDetails: [],
     };
   },
   computed: {
@@ -154,37 +155,17 @@ export default {
       };
     },
     apiCall(moreData) {
-      this.$store.dispatch("allProducts", moreData).then((res) => {
-        this.filterProductDetails = res.data.result.products;
-      });
+      this.$store.dispatch("allProducts", moreData)
     },
-    filterProduct(checkbox, filtervalue, filtervalueKey, heading) {
-      switch (heading) {
-        case "colour":
-          heading = "color";
-          break;
-        case "discount":
-          filtervalue = filtervalue.replace("%", "");
-          break;
-        case "price":
-          var range = filtervalueKey.split(",");
-          break;
-      }
-
+    filterProduct(checkbox, filter, heading) {
+      console.log(heading)
       if (checkbox.target.checked) {
-        if (heading === "price") {
-          this.filterProductDetails = this.productsDetails.filter(
-            (product) =>
-              parseInt(product[heading]) > parseInt(range[0]) &&
-              parseInt(product[heading]) <= parseInt(range[1])
-          );
-        } else {
-          this.filterProductDetails = this.productsDetails.filter(
-            (product) => product[heading] === filtervalue
-          );
+        var comaSeparate = ""
+        if(this.moreData.filter !== ""){
+           comaSeparate = ","
         }
-      } else {
-        this.filterProductDetails = this.productsDetails;
+        this.moreData.filter = `${this.moreData.filter}${comaSeparate}${filter.code}-${filter.value}`
+        this.apiCall(this.moreData);
       }
     },
   },
