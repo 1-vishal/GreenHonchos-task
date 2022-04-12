@@ -8,6 +8,7 @@ export default new Vuex.Store({
   state: {
     productsDetails: [],
     filters: [],
+    sortingList: [],
   },
   mutations: {
     productsDetails(state, data) {
@@ -16,6 +17,11 @@ export default new Vuex.Store({
     filters(state, data) {
       if(state.filters.length === 0) {
         state.filters = data;
+      }
+    },
+    sortingList(state, data) {
+      if(state.sortingList.length === 0) {
+        state.sortingList = data;
       }
     },
   },
@@ -42,12 +48,24 @@ export default new Vuex.Store({
             });
             var products = response.data.result.products;
             var filters = response.data.result.filters;
+            var sorting = response.data.result.sort;
+            sorting.forEach(element => {
+              if(element.label === 'Price'){
+                element.label = 'Price(Low to High)';
+                element.sortBy = 'asc'
+              } else {
+                element.sortBy = 'desc';
+              }
+            });
+            sorting.push({ code: 'selling_price', label: 'Price(High to Low)', sortBy: 'desc'})
             commit("productsDetails", products);
             commit("filters", filters);
+            commit("sortingList", sorting);
             resolve(response);
           })
           .catch((error) => {
             resolve(error);
+            commit("productsDetails", []);
           });
       });
     },

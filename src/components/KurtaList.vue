@@ -61,18 +61,14 @@
                 {{ productsDetails.length }} Items
               </div>
               <div class="col-md-6">
-                <select
-                  value="product_position"
+                  <select
                   class="form-control product-sort"
-                >
-                  <option value="price_low">Price (Low to High)</option>
-                  <option value="selling_price">Price (High to Low)</option>
-                  <option value="discount">Discount</option>
-                  <option value="price" style="display: none">Price</option>
-                  <option selected="selected" value="product_position">
-                    Newest
-                  </option>
-                </select>
+                v-model="selectedSortValue"
+                @change="sorting"
+              >
+                <option :id="sorting.label" v-for="sorting in sortingList" :key="sorting.label" :value="sorting" >{{sorting.label}}</option>
+               
+              </select>
               </div>
             </div>
           </div>
@@ -119,6 +115,8 @@ export default {
   name: "KurtaList",
   data() {
     return {
+      selectedSortValue: {code: "discount",
+label: "Discount"},
       moreData: {
         page: 1,
         count: 20,
@@ -129,7 +127,7 @@ export default {
     };
   },
   computed: {
-    ...mapState(["filters", "productsDetails"]),
+    ...mapState(["filters", "productsDetails", "sortingList"]),
   },
   mounted() {
     this.apiCall(this.moreData);
@@ -158,15 +156,30 @@ export default {
       this.$store.dispatch("allProducts", moreData)
     },
     filterProduct(checkbox, filter, heading) {
-      console.log(heading)
+      if(heading === 'price'){
+          filter.value = filter.value.replaceAll(' ', '+')
+        }
       if (checkbox.target.checked) {
         var comaSeparate = ""
         if(this.moreData.filter !== ""){
            comaSeparate = ","
-        }
+        }        
         this.moreData.filter = `${this.moreData.filter}${comaSeparate}${filter.code}-${filter.value}`
         this.apiCall(this.moreData);
+      }else {
+        this.moreData.filter = this.moreData.filter.replaceAll(filter.code+'-'+filter.value, '');
+        const last = this.moreData.filter.charAt(this.moreData.filter.length - 1);
+        const first = this.moreData.filter.charAt(0);
+        if(last === ',' || first === ','){
+          this.moreData.filter = last === ',' ?this.moreData.filter.slice(0, -1) : this.moreData.filter.slice(1, this.moreData.length)
+        }
+        this.apiCall(this.moreData);
       }
+    },
+     sorting() {
+      this.moreData.sort_by = this.selectedSortValue.code;
+      this.moreData.sort_dir = this.selectedSortValue.sortBy;
+      this.apiCall(this.moreData)
     },
   },
 };
